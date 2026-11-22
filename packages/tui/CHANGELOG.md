@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- Fixed user prompts missing from multiplexer prompt navigation such as tuios's scrollback browser: the OSC 133 marks now span the prompt's text ([#20123](https://github.com/can1357/oh-my-pi/issues/20123))
 - Fixed the `/usage` activity calendar replacing its painted history with "Usage history unavailable" when the refresh after it fails; the history stays, marked not synced ([#19896](https://github.com/can1357/oh-my-pi/pull/19896) by [@Xytronix](https://github.com/Xytronix))
 
 ## [19.1.0] - 2026-11-21

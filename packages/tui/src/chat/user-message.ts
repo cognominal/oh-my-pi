@@ -34,7 +34,11 @@ import {
 } from "../native/node";
 import { Memo } from "../native/memo";
 
-// OSC 133 shell integration: marks prompt zones for terminal multiplexers.
+// OSC 133 shell integration: marks each user bubble as a prompt (`133;A` +
+// `133;B` before its first row) followed by a finished command (`133;C` +
+// `133;D;0` after its last row). Multiplexers read the text between `B` and
+// `C` as the command: tuios's scrollback browser lists a block only when that
+// span holds text, so `B` must open the bubble rather than close it.
 //
 // The zone must be *closed* within the same render. `133;B` sets a sticky
 // cursor semantic of `.input` in Ghostty (and Ghostty-derived terminals such
@@ -50,11 +54,8 @@ import { Memo } from "../native/memo";
 // problem the marker was originally omitted to avoid: the command zone opens
 // and finishes inside this component, so later assistant/tool output can never
 // be grouped under the first submitted prompt.
-const OSC133_ZONE_START = "\x1b]133;A\x07";
-const OSC133_ZONE_END = "\x1b]133;B\x07";
-const OSC133_COMMAND_START = "\x1b]133;C\x07";
-const OSC133_COMMAND_DONE = "\x1b]133;D;0\x07";
-const OSC133_ZONE_CLOSE = OSC133_ZONE_END + OSC133_COMMAND_START + OSC133_COMMAND_DONE;
+const OSC133_ZONE_OPEN = "\x1b]133;A\x07\x1b]133;B\x07";
+const OSC133_ZONE_CLOSE = "\x1b]133;C\x07\x1b]133;D;0\x07";
 
 let promptZonesEnabled = true;
 
@@ -380,7 +381,7 @@ export class UserMessageComponent extends Container implements ReactionTarget, T
 		const wrapped = lines.slice();
 		if (this.#reaction !== undefined || this.#liveSteered) wrapped[0] = this.#badgeRow(width);
 		if (promptZonesEnabled) {
-			wrapped[0] = OSC133_ZONE_START + wrapped[0];
+			wrapped[0] = OSC133_ZONE_OPEN + wrapped[0];
 			wrapped[wrapped.length - 1] = wrapped[wrapped.length - 1] + OSC133_ZONE_CLOSE;
 		}
 		this.#zoneSource = lines;
